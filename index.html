@@ -155,9 +155,8 @@ function updateBlind() {
 
 // 🔊 เสียงเปลี่ยนเลเวล (กันซ้อน)
 function playLevelUpSound() {
-    levelUpSound.pause();
     levelUpSound.currentTime = 0;
-    levelUpSound.play();
+    levelUpSound.play().catch(() => {});
 }
 
 // ⏰ เสียงเตือน
@@ -166,6 +165,21 @@ function playWarningSound() {
     warningSound.currentTime = 0;
     warningSound.play();
 }
+//
+	function unlockAudio() {
+    levelUpSound.play().then(() => {
+        levelUpSound.pause();
+        levelUpSound.currentTime = 0;
+    }).catch(() => {});
+    
+    warningSound.play().then(() => {
+        warningSound.pause();
+        warningSound.currentTime = 0;
+    }).catch(() => {});
+}
+
+document.body.addEventListener("click", unlockAudio, { once: true });
+//
 </script>
 
 </body>
