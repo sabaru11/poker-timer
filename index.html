@@ -46,19 +46,29 @@ let levelTime;
 let smallBlind = 0;
 let bigBlind = 0;
 
-// 🔊 โหลดเสียง
-const levelUpSound = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
-const warningSound = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+// 🔊 ใช้ไฟล์เสียงในเครื่อง (สำคัญมาก)
+const levelUpSound = new Audio("level.mp3");
+const warningSound = new Audio("beep.mp3");
 
-levelUpSound.volume = 0.7;
-warningSound.volume = 0.4;
+// ✅ preload สำหรับ iPhone
+levelUpSound.preload = "auto";
+warningSound.preload = "auto";
+
+levelUpSound.volume = 1;
+warningSound.volume = 1;
 
 // 🔓 สถานะเสียง
 let audioUnlocked = false;
 
-// 🔓 ปลดล็อกเสียง (สำคัญมาก)
+// 🔓 ปลดล็อกเสียง (เวอร์ชันเสถียร)
 function unlockAudio() {
     if (audioUnlocked) return;
+
+    // trick iPhone
+    const silent = new Audio("level.mp3");
+    silent.play().then(() => {
+        silent.pause();
+    }).catch(() => {});
 
     levelUpSound.play().then(() => {
         levelUpSound.pause();
@@ -71,7 +81,7 @@ function unlockAudio() {
     }).catch(() => {});
 
     audioUnlocked = true;
-    alert("🔊 เปิดเสียงแล้ว"); // เอาไว้เช็คว่าได้กดจริง
+    alert("🔊 เสียงพร้อมแล้ว");
 }
 
 // ✅ Blind Structure
@@ -95,7 +105,7 @@ const blindLevels = [
 
 // ▶️ เริ่ม
 function startTimer() {
-    unlockAudio(); // 🔥 บังคับเปิดเสียงตอนกด start
+    unlockAudio(); // 🔥 บังคับปลดล็อก
 
     clearInterval(timer);
 
