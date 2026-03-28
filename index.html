@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>Poker Blind Timer</title>
+<link rel="stylesheet" href="style.css">
+<script src="option.js"></script>
+
+</head>
+
+<body>
+
+<div class="box">
+    <h1>🎲 Poker Blind Timer</h1>
+
+    <div class="big">Level: <span id="level">1</span></div>
+    <div class="big">Blind: <span id="blind">-</span></div>
+    <div class="big">Time: <span id="time">00:00</span></div>
+
+    <br>
+
+    <label>เวลา / เลเวล (นาที): </label>
+    <input type="number" id="minutes" value="5">
+
+    <br><br>
+
+    <button onclick="startTimer()">Start</button>
+    <button onclick="pauseTimer()">Pause</button>
+    <button onclick="resetTimer()">Reset</button>
+	<br>
+    <button onclick="increaseLevel()">➕ Level</button>
+    <button onclick="decreaseLevel()">➖ Level</button>
+    <button onclick="addTime()">➕ +10 วิ</button>
+    <button onclick="fastForward()">⏩ -10 วิ</button>
+</div>
+
+<script>
+let level = 1;
+let timer;
+let timeLeft = 0;
+let levelTime;
+
+let smallBlind = 0;
+let bigBlind = 0;
+
+// 🔊 โหลดเสียงล่วงหน้า (ลื่นกว่า)
+const levelUpSound = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
+const warningSound = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+
+
+levelUpSound.volume = 0.7;
+warningSound.volume = 0.4;
+
+// ✅ Blind Structure
+const blindLevels = [
+    { small: 50, big: 50 },
+    { small: 50, big: 100 },
+    { small: 50, big: 150 },
+    { small: 100, big: 200 },
+    { small: 150, big: 300 },
+    { small: 200, big: 400 },
+    { small: 250, big: 500 },
+    { small: 300, big: 600 },
+    { small: 350, big: 700 },
+    { small: 400, big: 800 }, //10
+    { small: 450, big: 900 },
+    { small: 500, big: 1000 },
+    { small: 600, big: 1200 },
+    { small: 800, big: 1600 },
+    { small: 1000, big: 2000 } //15
+];
+
+// ▶️ เริ่ม
+function startTimer() {
+    clearInterval(timer);
+
+    levelTime = parseInt(document.getElementById("minutes").value) * 60;
+
+    if (!timeLeft) timeLeft = levelTime;
+
+    updateBlind();
+    updateDisplay();
+
+    timer = setInterval(() => {
+        timeLeft--;
+
+        // ⏰ เตือน 10 วิสุดท้าย
+        if (timeLeft <= 10 && timeLeft > 0) {
+            playWarningSound();
+        }
+
+        updateDisplay();
+
+        if (timeLeft <= 0) {
+            level++;
+            timeLeft = levelTime;
+
+            playLevelUpSound(); // 🔊 เสียงเปลี่ยนเลเวล
+
+            updateBlind();
+        }
+    }, 1000);
+}
+
+// ⏸ หยุด
+function pauseTimer() {
+    clearInterval(timer);
+}
+
+// 🔄 รีเซ็ต
+function resetTimer() {
+    clearInterval(timer);
+    level = 1;
+    timeLeft = 0;
+
+    document.getElementById("level").innerText = level;
+    document.getElementById("blind").innerText = "-";
+    document.getElementById("time").innerText = "00:00";
+}
+
+// 🎯 อัปเดตเวลา
+function updateDisplay() {
+    let min = Math.floor(timeLeft / 60);
+    let sec = timeLeft % 60;
+
+    document.getElementById("time").innerText =
+        String(min).padStart(2, '0') + ":" +
+        String(sec).padStart(2, '0');
+
+    document.getElementById("level").innerText = level;
+}
+
+// 🔥 อัปเดต Blind
+function updateBlind() {
+    let current;
+
+    if (level <= blindLevels.length) {
+        current = blindLevels[level - 1];
+    } else {
+        let last = blindLevels[blindLevels.length - 1];
+        let step = level - blindLevels.length;
+
+        let small = last.small + (step * 200);
+        let big = last.big + (step * 400);
+
+        current = { small: small, big: big };
+    }
+
+    smallBlind = current.small;
+    bigBlind = current.big;
+
+    document.getElementById("blind").innerText =
+        smallBlind + " / " + bigBlind;
+}
+
+// 🔊 เสียงเปลี่ยนเลเวล (กันซ้อน)
+function playLevelUpSound() {
+    levelUpSound.pause();
+    levelUpSound.currentTime = 0;
+    levelUpSound.play();
+}
+
+// ⏰ เสียงเตือน
+function playWarningSound() {
+    warningSound.pause();
+    warningSound.currentTime = 0;
+    warningSound.play();
+}
+</script>
+
+</body>
+</html>
