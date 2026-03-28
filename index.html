@@ -3,8 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <title>Poker Blind Timer</title>
-<link rel="stylesheet" href="style.css">
-<script src="option.js"></script>
+
+<style>
+    body {
+        font-family: Arial;
+        text-align: center;
+        background: #0d0d0d;
+        color: #fff;
+    }
+    .box {
+        margin-top: 50px;
+    }
+    h1 {
+        font-size: 40px;
+    }
+    .big {
+        font-size: 32px;
+        margin: 10px;
+    }
+    button {
+        font-size: 18px;
+        padding: 10px;
+        margin: 5px;
+    }
+    input {
+        font-size: 18px;
+        padding: 5px;
+    }
+</style>
 </head>
 
 <body>
@@ -23,14 +49,15 @@
 
     <br><br>
 
-    <!-- 🔊 ปุ่มเปิดเสียง -->
     <button onclick="unlockAudio()">🔊 เปิดเสียง</button>
     <br><br>
 
     <button onclick="startTimer()">Start</button>
     <button onclick="pauseTimer()">Pause</button>
     <button onclick="resetTimer()">Reset</button>
-	<br>
+
+    <br>
+
     <button onclick="increaseLevel()">➕ Level</button>
     <button onclick="decreaseLevel()">➖ Level</button>
     <button onclick="addTime()">➕ +10 วิ</button>
@@ -46,45 +73,58 @@ let levelTime;
 let smallBlind = 0;
 let bigBlind = 0;
 
-// 🔊 ใช้ไฟล์เสียงในเครื่อง (สำคัญมาก)
-const levelUpSound = new Audio("level.mp3");
-const warningSound = new Audio("beep.mp3");
-
-// ✅ preload สำหรับ iPhone
-levelUpSound.preload = "auto";
-warningSound.preload = "auto";
-
-levelUpSound.volume = 1;
-warningSound.volume = 1;
-
-// 🔓 สถานะเสียง
+// 🔊 Web Audio (ตัวจบ iPhone)
+let audioCtx;
 let audioUnlocked = false;
 
-// 🔓 ปลดล็อกเสียง (เวอร์ชันเสถียร)
 function unlockAudio() {
     if (audioUnlocked) return;
 
-    // trick iPhone
-    const silent = new Audio("level.mp3");
-    silent.play().then(() => {
-        silent.pause();
-    }).catch(() => {});
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    levelUpSound.play().then(() => {
-        levelUpSound.pause();
-        levelUpSound.currentTime = 0;
-    }).catch(() => {});
-
-    warningSound.play().then(() => {
-        warningSound.pause();
-        warningSound.currentTime = 0;
-    }).catch(() => {});
+    const buffer = audioCtx.createBuffer(1, 1, 22050);
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioCtx.destination);
+    source.start(0);
 
     audioUnlocked = true;
     alert("🔊 เสียงพร้อมแล้ว");
 }
 
-// ✅ Blind Structure
+function beep(freq = 800, duration = 0.2) {
+    if (!audioUnlocked) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.value = freq;
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+
+    gain.gain.setValueAtTime(1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioCtx.currentTime + duration
+    );
+
+    osc.stop(audioCtx.currentTime + duration);
+}
+
+function playWarningSound() {
+    beep(1000, 0.1);
+}
+
+function playLevelUpSound() {
+    beep(600, 0.2);
+    setTimeout(() => beep(900, 0.2), 150);
+}
+
+// 🎯 Blind
 const blindLevels = [
     { small: 50, big: 50 },
     { small: 50, big: 100 },
@@ -103,9 +143,9 @@ const blindLevels = [
     { small: 1000, big: 2000 }
 ];
 
-// ▶️ เริ่ม
+// ▶️ Start
 function startTimer() {
-    unlockAudio(); // 🔥 บังคับปลดล็อก
+    unlockAudio();
 
     clearInterval(timer);
 
@@ -130,18 +170,17 @@ function startTimer() {
             timeLeft = levelTime;
 
             playLevelUpSound();
-
             updateBlind();
         }
     }, 1000);
 }
 
-// ⏸ หยุด
+// ⏸
 function pauseTimer() {
     clearInterval(timer);
 }
 
-// 🔄 รีเซ็ต
+// 🔄
 function resetTimer() {
     clearInterval(timer);
     level = 1;
@@ -152,7 +191,7 @@ function resetTimer() {
     document.getElementById("time").innerText = "00:00";
 }
 
-// 🎯 อัปเดตเวลา
+// ⏱
 function updateDisplay() {
     let min = Math.floor(timeLeft / 60);
     let sec = timeLeft % 60;
@@ -164,7 +203,7 @@ function updateDisplay() {
     document.getElementById("level").innerText = level;
 }
 
-// 🔥 อัปเดต Blind
+// 💰 Blind
 function updateBlind() {
     let current;
 
@@ -187,22 +226,26 @@ function updateBlind() {
         smallBlind + " / " + bigBlind;
 }
 
-// 🔊 เสียงเปลี่ยนเลเวล
-function playLevelUpSound() {
-    if (!audioUnlocked) return;
-
-    levelUpSound.currentTime = 0;
-    levelUpSound.play().catch(() => {});
+// ➕➖ Level
+function increaseLevel() {
+    level++;
+    updateBlind();
 }
 
-// ⏰ เสียงเตือน
-function playWarningSound() {
-    if (!audioUnlocked) return;
-
-    warningSound.currentTime = 0;
-    warningSound.play().catch(() => {});
+function decreaseLevel() {
+    if (level > 1) level--;
+    updateBlind();
 }
 
+// ⏩ เวลา
+function addTime() {
+    timeLeft += 10;
+}
+
+function fastForward() {
+    timeLeft -= 10;
+    if (timeLeft < 0) timeLeft = 0;
+}
 </script>
 
 </body>
