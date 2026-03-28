@@ -5,7 +5,6 @@
 <title>Poker Blind Timer</title>
 <link rel="stylesheet" href="style.css">
 <script src="option.js"></script>
-
 </head>
 
 <body>
@@ -22,6 +21,10 @@
     <label>เวลา / เลเวล (นาที): </label>
     <input type="number" id="minutes" value="5">
 
+    <br><br>
+
+    <!-- 🔊 ปุ่มเปิดเสียง -->
+    <button onclick="unlockAudio()">🔊 เปิดเสียง</button>
     <br><br>
 
     <button onclick="startTimer()">Start</button>
@@ -43,13 +46,33 @@ let levelTime;
 let smallBlind = 0;
 let bigBlind = 0;
 
-// 🔊 โหลดเสียงล่วงหน้า (ลื่นกว่า)
+// 🔊 โหลดเสียง
 const levelUpSound = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
 const warningSound = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
 
-
 levelUpSound.volume = 0.7;
 warningSound.volume = 0.4;
+
+// 🔓 สถานะเสียง
+let audioUnlocked = false;
+
+// 🔓 ปลดล็อกเสียง (สำคัญมาก)
+function unlockAudio() {
+    if (audioUnlocked) return;
+
+    levelUpSound.play().then(() => {
+        levelUpSound.pause();
+        levelUpSound.currentTime = 0;
+    }).catch(() => {});
+
+    warningSound.play().then(() => {
+        warningSound.pause();
+        warningSound.currentTime = 0;
+    }).catch(() => {});
+
+    audioUnlocked = true;
+    alert("🔊 เปิดเสียงแล้ว"); // เอาไว้เช็คว่าได้กดจริง
+}
 
 // ✅ Blind Structure
 const blindLevels = [
@@ -62,16 +85,18 @@ const blindLevels = [
     { small: 250, big: 500 },
     { small: 300, big: 600 },
     { small: 350, big: 700 },
-    { small: 400, big: 800 }, //10
+    { small: 400, big: 800 },
     { small: 450, big: 900 },
     { small: 500, big: 1000 },
     { small: 600, big: 1200 },
     { small: 800, big: 1600 },
-    { small: 1000, big: 2000 } //15
+    { small: 1000, big: 2000 }
 ];
 
 // ▶️ เริ่ม
 function startTimer() {
+    unlockAudio(); // 🔥 บังคับเปิดเสียงตอนกด start
+
     clearInterval(timer);
 
     levelTime = parseInt(document.getElementById("minutes").value) * 60;
@@ -84,7 +109,6 @@ function startTimer() {
     timer = setInterval(() => {
         timeLeft--;
 
-        // ⏰ เตือน 10 วิสุดท้าย
         if (timeLeft <= 10 && timeLeft > 0) {
             playWarningSound();
         }
@@ -95,7 +119,7 @@ function startTimer() {
             level++;
             timeLeft = levelTime;
 
-            playLevelUpSound(); // 🔊 เสียงเปลี่ยนเลเวล
+            playLevelUpSound();
 
             updateBlind();
         }
@@ -153,33 +177,22 @@ function updateBlind() {
         smallBlind + " / " + bigBlind;
 }
 
-// 🔊 เสียงเปลี่ยนเลเวล (กันซ้อน)
+// 🔊 เสียงเปลี่ยนเลเวล
 function playLevelUpSound() {
+    if (!audioUnlocked) return;
+
     levelUpSound.currentTime = 0;
     levelUpSound.play().catch(() => {});
 }
 
 // ⏰ เสียงเตือน
 function playWarningSound() {
-    warningSound.pause();
+    if (!audioUnlocked) return;
+
     warningSound.currentTime = 0;
-    warningSound.play();
-}
-//
-	function unlockAudio() {
-    levelUpSound.play().then(() => {
-        levelUpSound.pause();
-        levelUpSound.currentTime = 0;
-    }).catch(() => {});
-    
-    warningSound.play().then(() => {
-        warningSound.pause();
-        warningSound.currentTime = 0;
-    }).catch(() => {});
+    warningSound.play().catch(() => {});
 }
 
-document.body.addEventListener("click", unlockAudio, { once: true });
-//
 </script>
 
 </body>
