@@ -44,8 +44,8 @@
 
     <br>
 
-    <label>เวลา / เลเวล (นาที): </label>
-    <input type="number" id="minutes" value="5">
+    <!-- <label>เวลา / เลเวล (นาที): </label> -->
+    <!-- <input type="number" id="minutes" value="5"> -->
 
     <br><br>
 
@@ -165,9 +165,9 @@ function loadState() {
 // ⏱ เปลี่ยนเวลาแต่ละช่วง
 function getLevelTime() {
     if (level <= 10) {
-        return 2 * 60;
+        return 10 * 60;
     } else {
-        return 1 * 60;
+        return 8 * 60;
     }
 }
 
