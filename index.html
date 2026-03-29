@@ -121,7 +121,15 @@ function startTimer() {
     clearInterval(timer);
     clearInterval(totalTimer);
 
-    levelTime = parseInt(document.getElementById("minutes").value) * 60;
+    levelTime = getLevelTime();
+    
+    function getLevelTime() {
+    if (level <= 10) {
+        return 10 * 60; // 10 นาที
+    } else {
+        return 8 * 60; // 8 นาที
+    }
+}
 
     if (!timeLeft) timeLeft = levelTime;
 
@@ -146,6 +154,7 @@ function startTimer() {
             if (isBreak) {
                 isBreak = false;
                 level++;
+                levelTime = getLevelTime(); // ⭐ เพิ่มบรรทัดนี้
                 timeLeft = levelTime;
                 updateBlind();
                 return;
@@ -241,6 +250,7 @@ function updateBlind() {
 // ➕➖ Level
 function increaseLevel() {
     level++;
+    levelTime = getLevelTime(); // ⭐ เพิ่มบรรทัดนี้
     updateBlind();
     saveState();
 }
