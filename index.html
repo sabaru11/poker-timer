@@ -81,25 +81,71 @@ const breakTime = 300; // 5 นาที
 
 // 🎯 Blind
 const blindLevels = [
-    { small: 20, big: 20 }, // LV1
+    { small: 20, big: 20 },
     { small: 50, big: 50 },
     { small: 50, big: 100 },
     { small: 100, big: 200 },
     { small: 150, big: 300 },
-    { small: 200, big: 400 }, // LV5
-
-    { small: 250, big: 500 }, // ฉะลอเกม V6
-
-    { small: 300, big: 600 }, // LV7
+    { small: 200, big: 400 },
+    { small: 250, big: 500 },
+    { small: 300, big: 600 },
     { small: 400, big: 800 },
     { small: 500, big: 1000 },
-    { small: 700, big: 1400 }, // lv 10
-
-    { small: 1000, big: 2000 }, // LV 11
-
-    { small: 1500, big: 3000 }, // LV 12
-    { small: 2000, big: 4000 }, // LV 13
+    { small: 700, big: 1400 },
+    { small: 1000, big: 2000 },
+    { small: 1500, big: 3000 },
+    { small: 2000, big: 4000 },
 ];
+
+// 🔊 ระบบเสียง
+let audioCtx;
+let audioUnlocked = false;
+
+function unlockAudio() {
+    if (audioUnlocked) return;
+
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    const buffer = audioCtx.createBuffer(1, 1, 22050);
+    const source = audioCtx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(audioCtx.destination);
+    source.start(0);
+
+    audioUnlocked = true;
+}
+
+function beep(freq = 800, duration = 0.2) {
+    if (!audioUnlocked) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.value = freq;
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+
+    gain.gain.setValueAtTime(1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        audioCtx.currentTime + duration
+    );
+
+    osc.stop(audioCtx.currentTime + duration);
+}
+
+function playWarningSound() {
+    beep(1000, 0.1);
+}
+
+function playLevelUpSound() {
+    beep(600, 0.2);
+    setTimeout(() => beep(900, 0.2), 150);
+}
 
 // SAVE RELOAD F5
 function saveState() {
@@ -115,28 +161,30 @@ function loadState() {
     totalSeconds = parseInt(localStorage.getItem("totalSeconds")) || 0;
     isBreak = localStorage.getItem("isBreak") === "true";
 }
-    
+
+// ⏱ เปลี่ยนเวลาแต่ละช่วง
+function getLevelTime() {
+    if (level <= 10) {
+        return 2 * 60;
+    } else {
+        return 1 * 60;
+    }
+}
+
 // ▶️ Start
 function startTimer() {
+    unlockAudio();
+
     clearInterval(timer);
     clearInterval(totalTimer);
 
     levelTime = getLevelTime();
-    
-    function getLevelTime() {
-    if (level <= 10) {
-        return 2 * 60; // 10 นาที
-    } else {
-        return 1 * 60; // 8 นาที
-    }
-}
 
     if (!timeLeft) timeLeft = levelTime;
 
     updateBlind();
     updateDisplay();
 
-    // ⏱ เวลาเล่นรวม
     totalTimer = setInterval(() => {
         totalSeconds++;
         updateTotalTime();
@@ -145,22 +193,25 @@ function startTimer() {
     timer = setInterval(() => {
         timeLeft--;
 
-        saveState(); // กันรีเฟรชแล้วหาย
+        if (timeLeft <= 10 && timeLeft > 0) {
+            playWarningSound();
+        }
+
+        saveState();
         updateDisplay();
 
         if (timeLeft <= 0) {
 
-            // 🟡 ถ้าเป็น Break
             if (isBreak) {
                 isBreak = false;
                 level++;
-                levelTime = getLevelTime(); // ⭐ เพิ่มบรรทัดนี้
+                playLevelUpSound();
+                levelTime = getLevelTime();
                 timeLeft = levelTime;
                 updateBlind();
                 return;
             }
 
-            // 🔴 เช็คเข้า Break
             if (breakLevels.includes(level)) {
                 isBreak = true;
                 timeLeft = breakTime;
@@ -169,8 +220,9 @@ function startTimer() {
                 return;
             }
 
-            // ⬆️ เลเวลปกติ
             level++;
+            playLevelUpSound();
+            levelTime = getLevelTime();
             timeLeft = levelTime;
             updateBlind();
         }
@@ -188,7 +240,7 @@ function resetTimer() {
     clearInterval(timer);
     clearInterval(totalTimer);
 
-    localStorage.clear(); // ⭐ ล้างทั้งหมด
+    localStorage.clear();
 
     level = 1;
     timeLeft = 0;
@@ -201,7 +253,7 @@ function resetTimer() {
     document.getElementById("totalTime").innerText = "00:00:00";
 }
 
-// ⏱ เวลาแต่ละเลเวล
+// ⏱
 function updateDisplay() {
     let min = Math.floor(timeLeft / 60);
     let sec = timeLeft % 60;
@@ -213,7 +265,7 @@ function updateDisplay() {
     document.getElementById("level").innerText = level;
 }
 
-// 🕒 เวลาเล่นรวม
+// 🕒
 function updateTotalTime() {
     let h = Math.floor(totalSeconds / 3600);
     let m = Math.floor((totalSeconds % 3600) / 60);
@@ -225,7 +277,7 @@ function updateTotalTime() {
         String(s).padStart(2, '0');
 }
 
-// 💰 Blind
+// 💰
 function updateBlind() {
     if (isBreak) return;
 
@@ -247,10 +299,10 @@ function updateBlind() {
         current.small + " / " + current.big;
 }
 
-// ➕➖ Level
+// ➕➖
 function increaseLevel() {
     level++;
-    levelTime = getLevelTime(); // ⭐ เพิ่มบรรทัดนี้
+    levelTime = getLevelTime();
     updateBlind();
     saveState();
 }
@@ -261,7 +313,7 @@ function decreaseLevel() {
     saveState();
 }
 
-// ⏩ เวลา
+// ⏩
 function addTime() {
     timeLeft += 10;
 }
