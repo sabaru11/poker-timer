@@ -99,6 +99,21 @@ const blindLevels = [
     { small: 2000, big: 4000 }, // LV 13
 ];
 
+// SAVE RELOAD F5
+function saveState() {
+    localStorage.setItem("level", level);
+    localStorage.setItem("timeLeft", timeLeft);
+    localStorage.setItem("totalSeconds", totalSeconds);
+    localStorage.setItem("isBreak", isBreak);
+}
+
+function loadState() {
+    level = parseInt(localStorage.getItem("level")) || 1;
+    timeLeft = parseInt(localStorage.getItem("timeLeft")) || 0;
+    totalSeconds = parseInt(localStorage.getItem("totalSeconds")) || 0;
+    isBreak = localStorage.getItem("isBreak") === "true";
+}
+    
 // ▶️ Start
 function startTimer() {
     clearInterval(timer);
@@ -120,6 +135,7 @@ function startTimer() {
     timer = setInterval(() => {
         timeLeft--;
 
+        saveState(); // กันรีเฟรชแล้วหาย
         updateDisplay();
 
         if (timeLeft <= 0) {
@@ -160,6 +176,8 @@ function pauseTimer() {
 function resetTimer() {
     clearInterval(timer);
     clearInterval(totalTimer);
+
+    localStorage.clear(); // ⭐ ล้างทั้งหมด
 
     level = 1;
     timeLeft = 0;
@@ -222,11 +240,13 @@ function updateBlind() {
 function increaseLevel() {
     level++;
     updateBlind();
+    saveState();
 }
 
 function decreaseLevel() {
     if (level > 1) level--;
     updateBlind();
+    saveState();
 }
 
 // ⏩ เวลา
@@ -237,7 +257,15 @@ function addTime() {
 function fastForward() {
     timeLeft -= 10;
     if (timeLeft < 0) timeLeft = 0;
+    saveState();
 }
+
+window.onload = () => {
+    loadState();
+    updateBlind();
+    updateDisplay();
+    updateTotalTime();
+};
 </script>
 
 </body>
