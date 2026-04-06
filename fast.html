@@ -77,31 +77,30 @@ let isBreak = false;
 
 // 🔥 ตั้งค่า Break
 const breakLevels = [5, 10, 15, 20, 25]; // LV ที่จะพัก
-const breakTime = 300; // 5 นาที
+const breakTime = 360; // 5 นาที // 60 = 1 นาที
 
 // 🎯 Blind
 const blindLevels = [
     { small: 20, big: 40 },
     { small: 40, big: 60 },
-    { small: 40, big: 80 },
-    { small: 60, big: 100 }, 
-    { small: 80, big: 120 }, //5
+    { small: 50, big: 50 },
+    { small: 60, big: 120 }, 
+    { small: 100, big: 200 }, //5
     
-    { small: 100, big: 150 },
-    { small: 100, big: 200 },
-    { small: 200, big: 300 },
+    { small: 150, big: 300 },
     { small: 200, big: 400 },
-    { small: 300, big: 500 }, //10
-    
+    { small: 300, big: 500 },
     { small: 400, big: 600 },
-    { small: 500, big: 800 },
-    { small: 600, big: 1000 },
-    { small: 800, big: 1200 },
-    { small: 1000, big: 1500 }, //15
+    { small: 500, big: 1000 }, //10
     
-    { small: 1500, big: 2000 },
-    { small: 2000, big: 3000 },
-    { small: 3000, big: 5000 }, //18
+    { small: 800, big: 1200 },
+    { small: 1000, big: 2000 },
+    { small: 1500, big: 3000 },
+    { small: 2000, big: 4000 },
+    { small: 3000, big: 6000 }, //15
+
+
+    
 ];
 
 // 🔊 ระบบเสียง
@@ -306,8 +305,8 @@ function updateBlind() {
         let step = level - blindLevels.length;
 
         current = {
-            small: last.small + (step * 200),
-            big: last.big + (step * 400)
+            small: last.small + (step * 1000),
+            big: last.big + (step * 2000)
         };
     }
 
