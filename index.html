@@ -125,6 +125,11 @@ function unlockAudio() {
 function beep(freq = 800, duration = 0.2) {
     if (!audioUnlocked) return;
 
+    // 🔥 ปลุก audio ถ้ามันหลับ
+    if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+    }
+
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
 
@@ -186,6 +191,10 @@ function startTimer() {
     clearInterval(totalTimer);
 
     levelTime = getLevelTime();
+	
+	if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
+	}
 
     if (!timeLeft) timeLeft = levelTime;
 
