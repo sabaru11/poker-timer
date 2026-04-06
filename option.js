@@ -1,352 +1,61 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="UTF-8">
-<title>Poker Blind Timer</title>
-
-<style>
-    body {
-        font-family: Arial;
-        text-align: center;
-        background: #0d0d0d;
-        color: #fff;
-    }
-    .box {
-        margin-top: 50px;
-    }
-    h1 {
-        font-size: 40px;
-    }
-    .big {
-        font-size: 32px;
-        margin: 10px;
-    }
-    button {
-        font-size: 18px;
-        padding: 10px;
-        margin: 5px;
-    }
-    input {
-        font-size: 18px;
-        padding: 5px;
-    }
-</style>
-</head>
-
-<body>
-
-<div class="box">
-    <h1>🎲 Poker BT Tour</h1>
-
-    <div class="big">Level: <span id="level">1</span></div>
-    <div class="big">Blind: <span id="blind">-</span></div>
-    <div class="big">Time: <span id="time">00:00</span></div>
-
-    <br>
-
-    <!-- <label>เวลา / เลเวล (นาที): </label> -->
-    <!-- <input type="number" id="minutes" value="5"> -->
-
-    <br><br>
-
-    <button onclick="startTimer()">Start</button>
-    <button onclick="pauseTimer()">Pause</button>
-
-    <br>
-
-    <button onclick="increaseLevel()">➕ Level</button>
-    <button onclick="decreaseLevel()">➖ Level</button>
-    <button onclick="addTime()">➕ +10 วิ</button>
-    <button onclick="fastForward()">⏩ -10 วิ</button>
-    <br>
-    <button onclick="resetTimer()">Reset</button>
-    <br>
-    <div class="big">Total Time: <span id="totalTime">00:00:00</span></div>
-</div>
-
-<script>
-let level = 1;
-let timer;
-let totalTimer;
-let timeLeft = 0;
-let levelTime;
-
-let totalSeconds = 0;
-
-let isBreak = false;
-
-// 🔥 ตั้งค่า Break
-const breakLevels = [5, 10, 15, 20, 25]; // LV ที่จะพัก
-const breakTime = 300; // 5 นาที
-
-// 🎯 Blind
-const blindLevels = [
-    { small: 20, big: 40 },
-    { small: 40, big: 60 },
-    { small: 40, big: 80 },
-    { small: 60, big: 100 }, 
-    { small: 80, big: 120 }, //5
-    
-    { small: 100, big: 150 },
-    { small: 100, big: 200 },
-    { small: 200, big: 300 },
-    { small: 200, big: 400 },
-    { small: 300, big: 500 }, //10
-    
-    { small: 400, big: 600 },
-    { small: 500, big: 800 },
-    { small: 600, big: 1000 },
-    { small: 800, big: 1200 },
-    { small: 1000, big: 1500 }, //15
-    
-    { small: 1500, big: 2000 },
-    { small: 2000, big: 3000 },
-    { small: 3000, big: 5000 }, //18
-];
-
-// 🔊 ระบบเสียง
-let audioCtx;
-let audioUnlocked = false;
-
-function unlockAudio() {
-    if (audioUnlocked) return;
-
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    const buffer = audioCtx.createBuffer(1, 1, 22050);
-    const source = audioCtx.createBufferSource();
-    source.buffer = buffer;
-    source.connect(audioCtx.destination);
-    source.start(0);
-
-    audioUnlocked = true;
-}
-
-function beep(freq = 800, duration = 0.2) {
-    if (!audioUnlocked) return;
-
-    // 🔥 ปลุก audio ถ้ามันหลับ
-    if (audioCtx.state === "suspended") {
-        audioCtx.resume();
-    }
-
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.type = "sine";
-    osc.frequency.value = freq;
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    osc.start();
-
-    gain.gain.setValueAtTime(1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        audioCtx.currentTime + duration
-    );
-
-    osc.stop(audioCtx.currentTime + duration);
-}
-
-function playWarningSound() {
-    beep(1000, 0.1);
-}
-
-function playLevelUpSound() {
-    beep(600, 0.2);
-    setTimeout(() => beep(900, 0.2), 150);
-}
-
-// SAVE RELOAD F5
-function saveState() {
-    localStorage.setItem("level", level);
-    localStorage.setItem("timeLeft", timeLeft);
-    localStorage.setItem("totalSeconds", totalSeconds);
-    localStorage.setItem("isBreak", isBreak);
-}
-
-function loadState() {
-    level = parseInt(localStorage.getItem("level")) || 1;
-    timeLeft = parseInt(localStorage.getItem("timeLeft")) || 0;
-    totalSeconds = parseInt(localStorage.getItem("totalSeconds")) || 0;
-    isBreak = localStorage.getItem("isBreak") === "true";
-}
-
-// ⏱ เปลี่ยนเวลาแต่ละช่วง
-function getLevelTime() {
-    if (level <= 14) {
-        return 10 * 60;
-    } else {
-        return 8 * 60;
-    }
-}
-
-// ▶️ Start
-function startTimer() {
-    unlockAudio();
-
-    clearInterval(timer);
-    clearInterval(totalTimer);
-
-    levelTime = getLevelTime();
-	
-	if (audioCtx && audioCtx.state === "suspended") {
-    audioCtx.resume();
-	}
-
-    if (!timeLeft) timeLeft = levelTime;
-
-    updateBlind();
-    updateDisplay();
-
-    totalTimer = setInterval(() => {
-        totalSeconds++;
-        updateTotalTime();
-    }, 1000);
-
-    timer = setInterval(() => {
-        timeLeft--;
-
-        if (timeLeft <= 10 && timeLeft > 0) {
-            playWarningSound();
-        }
-
-        saveState();
-        updateDisplay();
-
-        if (timeLeft <= 0) {
-
-            if (isBreak) {
-                isBreak = false;
-                level++;
-                playLevelUpSound();
-                levelTime = getLevelTime();
-                timeLeft = levelTime;
-                updateBlind();
-                return;
-            }
-
-            if (breakLevels.includes(level)) {
-                isBreak = true;
-                timeLeft = breakTime;
-                document.getElementById("blind").innerText = "BREAK TIME";
-                alert("⏸️ พักเบรค!");
-                return;
-            }
-
-            level++;
-            playLevelUpSound();
-            levelTime = getLevelTime();
-            timeLeft = levelTime;
-            updateBlind();
-        }
-    }, 1000);
-}
-
-// ⏸
-function pauseTimer() {
-    clearInterval(timer);
-    clearInterval(totalTimer);
-}
-
-// 🔄
-function resetTimer() {
-    clearInterval(timer);
-    clearInterval(totalTimer);
-
-    localStorage.clear();
-
-    level = 1;
-    timeLeft = 0;
-    totalSeconds = 0;
-    isBreak = false;
-
-    document.getElementById("level").innerText = level;
-    document.getElementById("blind").innerText = "-";
-    document.getElementById("time").innerText = "00:00";
-    document.getElementById("totalTime").innerText = "00:00:00";
-}
-
-// ⏱
-function updateDisplay() {
-    let min = Math.floor(timeLeft / 60);
-    let sec = timeLeft % 60;
-
-    document.getElementById("time").innerText =
-        String(min).padStart(2, '0') + ":" +
-        String(sec).padStart(2, '0');
-
-    document.getElementById("level").innerText = level;
-}
-
-// 🕒
-function updateTotalTime() {
-    let h = Math.floor(totalSeconds / 3600);
-    let m = Math.floor((totalSeconds % 3600) / 60);
-    let s = totalSeconds % 60;
-
-    document.getElementById("totalTime").innerText =
-        String(h).padStart(2, '0') + ":" +
-        String(m).padStart(2, '0') + ":" +
-        String(s).padStart(2, '0');
-}
-
-// 💰
-function updateBlind() {
-    if (isBreak) return;
-
-    let current;
-
-    if (level <= blindLevels.length) {
-        current = blindLevels[level - 1];
-    } else {
-        let last = blindLevels[blindLevels.length - 1];
-        let step = level - blindLevels.length;
-
-        current = {
-            small: last.small + (step * 200),
-            big: last.big + (step * 400)
-        };
-    }
-
-    document.getElementById("blind").innerText =
-        current.small + " / " + current.big;
-}
-
-// ➕➖
+// ➕➖ Level
 function increaseLevel() {
     level++;
-    levelTime = getLevelTime();
+    timeLeft = levelTime;
+    warned = false;
+    playLevelUpSound();
     updateBlind();
+    updateDisplay();
     saveState();
 }
 
 function decreaseLevel() {
-    if (level > 1) level--;
-    updateBlind();
-    saveState();
+    if (level > 1) {
+        level--;
+        timeLeft = levelTime;
+        warned = false;
+        updateBlind();
+        updateDisplay();
+        saveState();
+    }
 }
 
-// ⏩
+// ⏩⏪ เวลา
 function addTime() {
     timeLeft += 10;
+    updateDisplay();
+    saveState();
 }
 
 function fastForward() {
     timeLeft -= 10;
-    if (timeLeft < 0) timeLeft = 0;
+
+    if (timeLeft <= 0) {
+        level++;
+        timeLeft = levelTime;
+        warned = false;
+        playLevelUpSound();
+        updateBlind();
+    }
+
+    updateDisplay();
     saveState();
 }
 
-window.onload = () => {
-    loadState();
+// 💾 Save
+function saveState() {
+    localStorage.setItem("level", level);
+    localStorage.setItem("timeLeft", timeLeft);
+}
+
+// 🔄 Load
+window.onload = function() {
+    let savedLevel = localStorage.getItem("level");
+    let savedTime = localStorage.getItem("timeLeft");
+
+    if (savedLevel) level = parseInt(savedLevel);
+    if (savedTime) timeLeft = parseInt(savedTime);
+
     updateBlind();
     updateDisplay();
-    updateTotalTime();
 };
-</script>
-
-</body>
-</html>
