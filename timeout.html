@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<!-- ทำให้เป็น fullscreen บน iPhone -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<!-- ชื่อแอพ -->
+<meta name="apple-mobile-web-app-title" content="Poker Timer">
+
+<!-- ไอคอน -->
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<title>Dealer Timer</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: #0d0d0d;
+    color: #fff;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    touch-action: manipulation;
+}
+
+button {
+    font-size: 24px;
+    border-radius: 12px;
+}
+
+.box {
+    margin-top: 100px;
+}
+
+.timer-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+#timer {
+    font-size: 100px;
+    font-weight: bold;
+}
+
+#skipBtn {
+    font-size: 20px;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+#stack {
+    margin-top: 20px;
+    font-size: 30px;
+    color: #00ffcc;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+    <h1>YOUR TURN</h1>
+
+    <div class="timer-row">
+        <div id="timer">5</div>
+        <button id="skipBtn">⏭ ข้าม</button>
+    </div>
+
+    <div id="stack">Stack: 0</div>
+</div>
+
+<script>
+let maxTime = 5;
+let time = maxTime;
+let stack = 0;
+let interval;
+
+const timerDisplay = document.getElementById("timer");
+const stackDisplay = document.getElementById("stack");
+const skipBtn = document.getElementById("skipBtn");
+
+function startTimer() {
+    clearInterval(interval);
+
+    time = maxTime;
+    timerDisplay.innerText = time;
+
+    interval = setInterval(() => {
+        time--;
+        timerDisplay.innerText = time;
+
+        if (time <= 0) {
+            clearInterval(interval);
+
+            // ⛔ หมดเวลา → เพิ่ม stack
+            stack++;
+            updateStack();
+
+            startTimer(); // เริ่มใหม่
+        }
+    }, 1000);
+}
+
+function updateStack() {
+    stackDisplay.innerText = "Stack: " + stack;
+}
+
+// ⏭ กดข้าม
+skipBtn.onclick = () => {
+    // ลบ stack ถ้ามี
+    if (stack > 0) {
+        stack--;
+    }
+
+    updateStack();
+    startTimer(); // รีเวลาใหม่
+};
+
+// เริ่มครั้งแรก
+startTimer();
+</script>
+
+</body>
+</html>
