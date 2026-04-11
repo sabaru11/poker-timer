@@ -39,7 +39,13 @@
     <h1>🎲 Poker BT Tour</h1>
 
     <div class="big">Level: <span id="level">1</span></div>
-    <div class="big">Blind: <span id="blind">-</span></div>
+    <div class="big">
+    Blind: <span id="blind">-</span>
+    <div style="font-size:16px; opacity:0.7;">
+        ⬅️ <span id="prevBlind">-</span> |
+        ➡️ <span id="nextBlind">-</span>
+    </div>
+</div>
     <div class="big">Time: <span id="time">00:00</span></div>
 
     <br>
@@ -295,26 +301,44 @@ function updateTotalTime() {
         String(s).padStart(2, '0');
 }
 
-// 💰
-function updateBlind() {
-    if (isBreak) return;
-
-    let current;
-
-    if (level <= blindLevels.length) {
-        current = blindLevels[level - 1];
+function getBlindAtLevel(lv) {
+    if (lv <= blindLevels.length) {
+        return blindLevels[lv - 1];
     } else {
         let last = blindLevels[blindLevels.length - 1];
-        let step = level - blindLevels.length;
+        let step = lv - blindLevels.length;
 
-        current = {
+        return {
             small: last.small + (step * 200),
             big: last.big + (step * 400)
         };
     }
+}
+	
+// 💰
+function updateBlind() {
+    if (isBreak) {
+        document.getElementById("blind").innerText = "BREAK TIME";
+        document.getElementById("prevBlind").innerText = "-";
+        document.getElementById("nextBlind").innerText = "-";
+        return;
+    }
 
+    let current = getBlindAtLevel(level);
+    let prev = level > 1 ? getBlindAtLevel(level - 1) : null;
+    let next = getBlindAtLevel(level + 1);
+
+    // ปัจจุบัน
     document.getElementById("blind").innerText =
         current.small + " / " + current.big;
+
+    // ก่อนหน้า
+    document.getElementById("prevBlind").innerText =
+        prev ? (prev.small + " / " + prev.big) : "-";
+
+    // ถัดไป
+    document.getElementById("nextBlind").innerText =
+        next.small + " / " + next.big;
 }
 
 // ➕➖
