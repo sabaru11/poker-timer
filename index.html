@@ -201,10 +201,12 @@ function startTimer() {
     updateBlind();
     updateDisplay();
 
-    totalTimer = setInterval(() => {
-        totalSeconds++;
-        updateTotalTime();
-    }, 1000);
+	totalTimer = setInterval(() => {
+	    if (!isBreak) {   // ❗ เพิ่มเงื่อนไขตรงนี้
+	        totalSeconds++;
+	        updateTotalTime();
+	    }
+	}, 1000);
 
     timer = setInterval(() => {
         timeLeft--;
