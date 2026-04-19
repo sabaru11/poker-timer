@@ -1,6 +1,6 @@
 {
   "name": "Poker Timer",
-  "short_name": "Timer",
+  "short_name": "Timer2",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0d0d0d",
