@@ -14,9 +14,7 @@ body {
 }
 
 /* layout */
-.box {
-    padding: 20px;
-}
+.box { padding: 20px; }
 
 h1 {
     font-size: 22px;
@@ -25,13 +23,10 @@ h1 {
     opacity: 0.8;
 }
 
-.big {
-    font-size: 28px;
-    margin: 10px 0;
-}
+.big { font-size: 28px; margin: 10px 0; }
 
 #time {
-    font-size: 64px;
+    font-size: 45px;
     font-weight: 600;
     margin-top: 10px;
 }
@@ -47,15 +42,11 @@ button {
     color: #fff;
 }
 
-button:active {
-    opacity: 0.6;
-}
+button:active { opacity: 0.6; }
 
-.control-panel {
-    margin-top: 20px;
-}
+.control-panel { margin-top: 20px; }
 
-/* 🔥 FOCUS MODE (เต็มจอจริง) */
+/* 🔥 FOCUS MODE */
 .focus-mode {
     position: fixed;
     inset: 0;
@@ -66,39 +57,50 @@ button:active {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-
     padding: 20px;
 }
 
-/* ซ่อนทุกอย่างที่ไม่จำเป็น */
 .focus-mode .control-panel,
-.focus-mode h1,
-.focus-mode #totalTime {
+.focus-mode h1{
     display: none;
 }
 
-/* ขยายให้เต็มจอมือถือ */
-.focus-mode .big {
-    font-size: 36px;
-}
+.focus-mode .big { font-size: 36px; }
+.focus-mode #time { font-size: 90px; }
 
-.focus-mode #time {
-    font-size: 90px;
-}
-
-/* มือถือ */
 @media (max-width: 600px) {
-    #time {
-        font-size: 56px;
-    }
+    #time { font-size: 56px; }
+    .focus-mode #time { font-size: 80px; }
+    .big { font-size: 22px; }
+}
 
-    .focus-mode #time {
-        font-size: 80px;
-    }
+.blindlv { font-size: 45px; font-weight: 600; }
+.levelblind { font-size: 45px; font-weight: 400; }
 
-    .big {
-        font-size: 22px;
-    }
+/* 🔥 Floating buttons */
+#focusControls {
+    position: fixed;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10000;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#focusControls button {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    font-size: 18px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+}
+
+body:not(.focus-mode) #focusControls {
+    display: none;
 }
 </style>
 </head>
@@ -108,23 +110,24 @@ button:active {
 <div class="box">
     <h1>Poker Timer</h1>
 
-    <div class="big">Level: <span id="level">1</span></div>
+    <div class="levelblind">Level: <span id="level">1</span></div>
 
-    <div class="big">
-        Blind: <span id="blind">-</span>
+    <div>
+        <div class="blindlv">Blind : <span id="blind">-</span></div>
         <div style="font-size:14px; opacity:0.5;">
             <span id="prevBlind">-</span> | <span id="nextBlind">-</span>
         </div>
     </div>
 
-    <div class="big">Time</div>
     <div id="time">00:00</div>
+
+    <div style="opacity:0.6;">
+        <span id="totalTime">00:00:00</span>
+    </div>
 
     <div class="control-panel">
         <br>
-
-        <button onclick="startTimer()">Start</button>
-        <button onclick="pauseTimer()">Pause</button>
+        <button id="toggleBtn" onclick="toggleTimer()">Start</button>
 
         <br>
 
@@ -145,15 +148,14 @@ button:active {
         <button onclick="toggleFocus()">Focus</button>
 
         <br>
-
-        <div style="margin-top:10px; opacity:0.6;">
-            <span id="totalTime">00:00:00</span>
-        </div>
     </div>
+
+    <!-- 🔥 Focus Controls -->
+    <div id="focusControls"></div>
 </div>
 
 <script>
-// ===== (logic เดิมคุณ 100% ไม่แตะ) =====
+// ===== logic เดิม =====
 let level = 1;
 let timer;
 let totalTimer;
@@ -161,6 +163,9 @@ let timeLeft = 0;
 let levelTime;
 let totalSeconds = 0;
 let isBreak = false;
+
+// ✅ เพิ่ม state (ไม่กระทบ logic เดิม)
+let isRunning = false;
 
 const breakLevels = [5, 10, 15, 20, 25];
 const breakTime = 300;
@@ -233,7 +238,12 @@ function loadState() {
 
 function getLevelTime() { return level <= 14 ? 600 : 480; }
 
+// 🔥 เพิ่ม 2 บรรทัด (ไม่ยุ่ง logic เดิม)
 function startTimer() {
+    isRunning = true;
+    updateFocusButtons();
+    updateToggleButton();
+
     unlockAudio();
     clearInterval(timer);
     clearInterval(totalTimer);
@@ -287,11 +297,18 @@ function startTimer() {
 }
 
 function pauseTimer() {
+    isRunning = false;
+    updateFocusButtons();
+    updateToggleButton();
+
     clearInterval(timer);
     clearInterval(totalTimer);
 }
 
 function resetTimer() {
+    const confirmReset = confirm("ยืนยันจะรีเซ็ตใช่ไหม?");
+    if (!confirmReset) return;
+
     clearInterval(timer);
     clearInterval(totalTimer);
     localStorage.clear();
@@ -352,8 +369,8 @@ function updateBlind() {
     let n = getBlindAtLevel(level + 1);
 
     document.getElementById("blind").innerText = c.small + " / " + c.big;
-    document.getElementById("prevBlind").innerText = p ? p.small + " / " + p.big : "-";
-    document.getElementById("nextBlind").innerText = n.small + " / " + n.big;
+    document.getElementById("prevBlind").innerText = p ? "Old : " + p.small + " / " + p.big : "-";
+    document.getElementById("nextBlind").innerText = "Next : " + n.small + " / " + n.big;
 }
 
 function increaseLevel(){ level++; updateBlind(); saveState(); }
@@ -374,11 +391,33 @@ function skipBreak(){
 function addMinute(){ timeLeft+=60; saveState(); }
 function minusMinute(){ timeLeft-=60; if(timeLeft<0) timeLeft=0; saveState(); }
 
-// 🔥 Focus (เต็มจอจริง)
+// 🔥 Focus
 let isFocus = false;
 function toggleFocus(){
     isFocus = !isFocus;
+
     document.body.classList.toggle("focus-mode", isFocus);
+
+    const fc = document.getElementById("focusControls");
+    fc.style.display = isFocus ? "flex" : "none";
+
+    updateFocusButtons();
+}
+
+// 🔥 ปุ่ม dynamic
+function updateFocusButtons() {
+    const controls = document.getElementById("focusControls");
+    if (!controls) return;
+
+    controls.innerHTML = isRunning
+        ? `
+            <button onclick="pauseTimer()">⏸</button>
+            <button onclick="toggleFocus()">✕</button>
+        `
+        : `
+            <button onclick="startTimer()">▶</button>
+            <button onclick="toggleFocus()">✕</button>
+        `;
 }
 
 window.onload = () => {
@@ -386,7 +425,24 @@ window.onload = () => {
     updateBlind();
     updateDisplay();
     updateTotalTime();
+    updateToggleButton();
 };
+
+function toggleTimer() {
+    if (isRunning) {
+        pauseTimer();
+    } else {
+        startTimer();
+    }
+    updateToggleButton();
+}
+
+function updateToggleButton() {
+    const btn = document.getElementById("toggleBtn");
+    if (!btn) return;
+
+    btn.innerText = isRunning ? "Pause" : "Start";
+}
 </script>
 
 </body>
