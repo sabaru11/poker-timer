@@ -5,89 +5,31 @@
 <title>Poker Blind Timer</title>
 
 <style>
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    text-align: center;
-    background: radial-gradient(circle at top, #1a1a1a, #050505);
-    color: #fff;
-    margin: 0;
-}
-
-.box {
-    margin-top: 40px;
-    padding: 20px;
-}
-
-h1 {
-    font-size: 38px;
-    margin-bottom: 20px;
-    color: #00d4ff;
-    text-shadow: 0 0 10px rgba(0,212,255,0.6);
-}
-
-.big {
-    font-size: 32px;
-    margin: 10px;
-}
-
-#time {
-    font-size: 60px;
-    font-weight: bold;
-    color: #00ff9d;
-    text-shadow: 0 0 20px rgba(0,255,157,0.6);
-}
-
-button {
-    font-size: 16px;
-    padding: 10px 14px;
-    margin: 5px;
-    border-radius: 10px;
-    border: none;
-    background: #111;
-    color: #fff;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-button:hover {
-    background: #00d4ff;
-    color: #000;
-}
-
-.control-panel {
-    margin-top: 20px;
-}
-
-/* 🎥 Focus Mode */
-.focus-mode .control-panel,
-.focus-mode h1,
-.focus-mode #totalTime {
-    display: none;
-}
-
-.focus-mode .big {
-    font-size: 40px;
-}
-
-.focus-mode #time {
-    font-size: 90px;
-}
-
-/* 📱 Mobile */
-@media (max-width: 600px) {
+    body {
+        font-family: Arial;
+        text-align: center;
+        background: #0d0d0d;
+        color: #fff;
+    }
+    .box {
+        margin-top: 50px;
+    }
+    h1 {
+        font-size: 40px;
+    }
     .big {
-        font-size: 24px;
+        font-size: 32px;
+        margin: 10px;
     }
-
-    #time {
-        font-size: 48px;
-    }
-
     button {
-        font-size: 14px;
-        padding: 8px;
+        font-size: 18px;
+        padding: 10px;
+        margin: 5px;
     }
-}
+    input {
+        font-size: 18px;
+        padding: 5px;
+    }
 </style>
 </head>
 
@@ -97,49 +39,39 @@ button:hover {
     <h1>🎲 Poker BT Tour</h1>
 
     <div class="big">Level: <span id="level">1</span></div>
-
     <div class="big">
-        Blind: <span id="blind">-</span>
-        <div style="font-size:16px; opacity:0.7;">
-            Old level: <span id="prevBlind">-</span> |
-            Next level: <span id="nextBlind">-</span>
-        </div>
+    Blind: <span id="blind">-</span>
+    <div style="font-size:16px; opacity:0.7;">
+        Old level: <span id="prevBlind">-</span> |
+        Next level: <span id="nextBlind">-</span>
     </div>
-
+</div>
     <div class="big">Time: <span id="time">00:00</span></div>
 
-    <div class="control-panel">
-        <br>
+    <br>
 
-        <button onclick="startTimer()">Start</button>
-        <button onclick="pauseTimer()">Pause</button>
+    <!-- <label>เวลา / เลเวล (นาที): </label> -->
+    <!-- <input type="number" id="minutes" value="5"> -->
 
-        <br>
+    <br><br>
 
-        <button onclick="addMinute()">➕ +1 นาที</button>
-        <button onclick="minusMinute()">➖ -1 นาที</button>
-        <button onclick="addTime()">➕ +10 วิ</button>
-        <button onclick="fastForward()">⏩ -10 วิ</button>
+    <button onclick="startTimer()">Start</button>
+    <button onclick="pauseTimer()">Pause</button>
 
-        <br>
+    <br>
 
-        <button onclick="increaseLevel()">➕ Level</button>
-        <button onclick="decreaseLevel()">➖ Level</button>
-        <button onclick="skipBreak()">⏭️ ข้ามพัก</button>
-
-        <br>
-
-        <button onclick="resetTimer()">Reset</button>
-
-        <br><br>
-
-        <!-- 🎥 Focus -->
-        <button onclick="toggleFocus()">🎥 Focus Mode</button>
-
-        <br>
-
-        <div class="big">Total Time: <span id="totalTime">00:00:00</span></div>
-    </div>
+    <button onclick="addMinute()">➕ +1 นาที</button>
+    <button onclick="minusMinute()">➖ -1 นาที</button>
+    <button onclick="addTime()">➕ +10 วิ</button>
+    <button onclick="fastForward()">⏩ -10 วิ</button>
+    <br>
+    <button onclick="increaseLevel()">➕ Level</button>
+    <button onclick="decreaseLevel()">➖ Level</button>
+    <button onclick="skipBreak()">⏭️ ข้ามพัก</button>
+    <br>
+    <button onclick="resetTimer()">Reset</button>
+    <br>
+    <div class="big">Total Time: <span id="totalTime">00:00:00</span></div>
 </div>
 
 <script>
@@ -154,8 +86,8 @@ let totalSeconds = 0;
 let isBreak = false;
 
 // 🔥 ตั้งค่า Break
-const breakLevels = [5, 10, 15, 20, 25];
-const breakTime = 300;
+const breakLevels = [5, 10, 15, 20, 25]; // LV ที่จะพัก
+const breakTime = 300; // 5 นาที
 
 // 🎯 Blind
 const blindLevels = [
@@ -163,23 +95,26 @@ const blindLevels = [
     { small: 40, big: 60 },
     { small: 40, big: 80 },
     { small: 60, big: 100 }, 
-    { small: 80, big: 120 },
+    { small: 80, big: 120 }, //5
+    
     { small: 100, big: 150 },
     { small: 100, big: 200 },
     { small: 200, big: 300 },
     { small: 200, big: 400 },
-    { small: 300, big: 500 },
+    { small: 300, big: 500 }, //10
+    
     { small: 400, big: 600 },
     { small: 500, big: 800 },
     { small: 600, big: 1000 },
     { small: 800, big: 1200 },
-    { small: 1000, big: 1500 },
+    { small: 1000, big: 1500 }, //15
+    
     { small: 1500, big: 2000 },
     { small: 2000, big: 3000 },
-    { small: 3000, big: 5000 },
+    { small: 3000, big: 5000 }, //18
 ];
 
-// 🔊 เสียง
+// 🔊 ระบบเสียง
 let audioCtx;
 let audioUnlocked = false;
 
@@ -187,6 +122,7 @@ function unlockAudio() {
     if (audioUnlocked) return;
 
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
     const buffer = audioCtx.createBuffer(1, 1, 22050);
     const source = audioCtx.createBufferSource();
     source.buffer = buffer;
@@ -199,6 +135,7 @@ function unlockAudio() {
 function beep(freq = 800, duration = 0.2) {
     if (!audioUnlocked) return;
 
+    // 🔥 ปลุก audio ถ้ามันหลับ
     if (audioCtx.state === "suspended") {
         audioCtx.resume();
     }
@@ -232,7 +169,7 @@ function playLevelUpSound() {
     setTimeout(() => beep(900, 0.2), 150);
 }
 
-// 💾 save/load
+// SAVE RELOAD F5
 function saveState() {
     localStorage.setItem("level", level);
     localStorage.setItem("timeLeft", timeLeft);
@@ -247,12 +184,16 @@ function loadState() {
     isBreak = localStorage.getItem("isBreak") === "true";
 }
 
-// ⏱
+// ⏱ เปลี่ยนเวลาแต่ละช่วง
 function getLevelTime() {
-    return level <= 14 ? 600 : 480;
+    if (level <= 14) {
+        return 10 * 60;
+    } else {
+        return 8 * 60;
+    }
 }
 
-// ▶️
+// ▶️ Start
 function startTimer() {
     unlockAudio();
 
@@ -260,18 +201,22 @@ function startTimer() {
     clearInterval(totalTimer);
 
     levelTime = getLevelTime();
+	
+	if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
+	}
 
     if (!timeLeft) timeLeft = levelTime;
 
     updateBlind();
     updateDisplay();
 
-    totalTimer = setInterval(() => {
-        if (!isBreak) {
-            totalSeconds++;
-            updateTotalTime();
-        }
-    }, 1000);
+	totalTimer = setInterval(() => {
+	    if (!isBreak) {   // ❗ เพิ่มเงื่อนไขตรงนี้
+	        totalSeconds++;
+	        updateTotalTime();
+	    }
+	}, 1000);
 
     timer = setInterval(() => {
         timeLeft--;
@@ -322,6 +267,7 @@ function pauseTimer() {
 function resetTimer() {
     clearInterval(timer);
     clearInterval(totalTimer);
+
     localStorage.clear();
 
     level = 1;
@@ -372,7 +318,7 @@ function getBlindAtLevel(lv) {
         };
     }
 }
-
+	
 // 💰
 function updateBlind() {
     if (isBreak) {
@@ -386,12 +332,15 @@ function updateBlind() {
     let prev = level > 1 ? getBlindAtLevel(level - 1) : null;
     let next = getBlindAtLevel(level + 1);
 
+    // ปัจจุบัน
     document.getElementById("blind").innerText =
         current.small + " / " + current.big;
 
+    // ก่อนหน้า
     document.getElementById("prevBlind").innerText =
         prev ? (prev.small + " / " + prev.big) : "-";
 
+    // ถัดไป
     document.getElementById("nextBlind").innerText =
         next.small + " / " + next.big;
 }
@@ -410,19 +359,32 @@ function decreaseLevel() {
     saveState();
 }
 
-function addTime() { timeLeft += 10; }
+// ⏩
+function addTime() {
+    timeLeft += 10;
+}
+
 function fastForward() {
     timeLeft -= 10;
     if (timeLeft < 0) timeLeft = 0;
     saveState();
 }
 
+window.onload = () => {
+    loadState();
+    updateBlind();
+    updateDisplay();
+    updateTotalTime();
+};
+
 function skipBreak() {
     if (!isBreak) return;
+
     isBreak = false;
     level++;
     levelTime = getLevelTime();
     timeLeft = levelTime;
+
     playLevelUpSound();
     updateBlind();
     saveState();
@@ -438,27 +400,6 @@ function minusMinute() {
     if (timeLeft < 0) timeLeft = 0;
     saveState();
 }
-
-// 🎥 Focus
-let isFocus = false;
-function toggleFocus() {
-    isFocus = !isFocus;
-
-    if (isFocus) {
-        document.body.classList.add("focus-mode");
-        document.documentElement.requestFullscreen?.();
-    } else {
-        document.body.classList.remove("focus-mode");
-        document.exitFullscreen?.();
-    }
-}
-
-window.onload = () => {
-    loadState();
-    updateBlind();
-    updateDisplay();
-    updateTotalTime();
-};
 </script>
 
 </body>
