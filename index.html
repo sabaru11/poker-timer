@@ -310,7 +310,15 @@ function startTimer() {
                 isBreak = true;
                 timeLeft = breakTime;
                 updateBlind();
-                alert("พักเบรค!");
+
+                let currentBlind = getBlindAtLevel(level);
+
+                alert(
+                    "พักเบรค!\n\n" +
+                    "Level " + level + "\n" +
+                    "Blind: " + currentBlind.small + " / " + currentBlind.big + "\n\n" +
+                    "พัก 5 นาที"
+                );
                 return;
             }
 
