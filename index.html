@@ -309,7 +309,7 @@ function startTimer() {
             if (breakLevels.includes(level)) {
                 isBreak = true;
                 timeLeft = breakTime;
-                document.getElementById("blind").innerText = "BREAK TIME";
+                updateBlind();
                 alert("พักเบรค!");
                 return;
             }
@@ -383,20 +383,32 @@ function getBlindAtLevel(lv) {
 }
 
 function updateBlind() {
-    if (isBreak) {
-        document.getElementById("blind").innerText = "BREAK TIME";
-        document.getElementById("prevBlind").innerText = "-";
-        document.getElementById("nextBlind").innerText = "-";
-        return;
-    }
-
     let c = getBlindAtLevel(level);
     let p = level > 1 ? getBlindAtLevel(level - 1) : null;
     let n = getBlindAtLevel(level + 1);
 
-    document.getElementById("blind").innerText = c.small + " / " + c.big;
-    document.getElementById("prevBlind").innerText = p ? "Old : " + p.small + " / " + p.big : "-";
-    document.getElementById("nextBlind").innerText = "Next : " + n.small + " / " + n.big;
+    if (isBreak) {
+        // ตอนพัก ให้แสดง Blind ของ Level เดิมที่เพิ่งจบไป
+        document.getElementById("blind").innerText =
+            c.small + " / " + c.big;
+
+        document.getElementById("prevBlind").innerText =
+            p ? "Old : " + p.small + " / " + p.big : "-";
+
+        document.getElementById("nextBlind").innerText =
+            "Next : " + n.small + " / " + n.big;
+
+        return;
+    }
+
+    document.getElementById("blind").innerText =
+        c.small + " / " + c.big;
+
+    document.getElementById("prevBlind").innerText =
+        p ? "Old : " + p.small + " / " + p.big : "-";
+
+    document.getElementById("nextBlind").innerText =
+        "Next : " + n.small + " / " + n.big;
 }
 
 function increaseLevel(){ level++; updateBlind(); saveState(); }
