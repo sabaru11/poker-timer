@@ -69,7 +69,7 @@ button:active { opacity: 0.6; }
 
 /* ซ่อน UI ที่ไม่จำเป็น */
 .focus-mode .control-panel,
-.focus-mode h1{
+.focus-mode h1 {
     display: none;
 }
 
@@ -86,7 +86,6 @@ button:active { opacity: 0.6; }
 
 .focus-mode #time {
     font-size: 45px;
-    /* opacity: 0.7; */
 }
 
 .focus-mode #totalTime {
@@ -139,8 +138,8 @@ body:not(.focus-mode) #focusControls {
     <div class="levelblind">Level: <span id="level">1</span></div>
 
     <div>
-        <div class="blindlv">Blind : <span id="blind">-</span></div>
-        <div style="font-size:14px; opacity:0.5;">
+        <div class="blindlv" id="blindBox">Blind : <span id="blind">-</span></div>
+        <div id="blindSubText" style="font-size:14px; opacity:0.5;">
             <span id="prevBlind">-</span> | <span id="nextBlind">-</span>
         </div>
     </div>
@@ -181,7 +180,6 @@ body:not(.focus-mode) #focusControls {
 </div>
 
 <script>
-// ===== logic เดิม =====
 let level = 1;
 let timer;
 let totalTimer;
@@ -189,8 +187,6 @@ let timeLeft = 0;
 let levelTime;
 let totalSeconds = 0;
 let isBreak = false;
-
-// ✅ เพิ่ม state (ไม่กระทบ logic เดิม)
 let isRunning = false;
 
 const breakLevels = [5, 10, 15, 20, 25];
@@ -264,7 +260,6 @@ function loadState() {
 
 function getLevelTime() { return level <= 14 ? 600 : 480; }
 
-// 🔥 เพิ่ม 2 บรรทัด (ไม่ยุ่ง logic เดิม)
 function startTimer() {
     isRunning = true;
     updateFocusButtons();
@@ -353,9 +348,10 @@ function resetTimer() {
     isBreak = false;
 
     document.getElementById("level").innerText = level;
-    document.getElementById("blind").innerText = "-";
+    document.getElementById("blindBox").innerHTML = 'Blind : <span id="blind">-</span>';
     document.getElementById("time").innerText = "00:00";
     document.getElementById("totalTime").innerText = "00:00:00";
+    updateBlind();
 }
 
 function updateDisplay() {
@@ -391,16 +387,22 @@ function getBlindAtLevel(lv) {
 }
 
 function updateBlind() {
-    let c = getBlindAtLevel(level);
+    const blindBox = document.getElementById("blindBox");
+
     let p = level > 1 ? getBlindAtLevel(level - 1) : null;
     let n = getBlindAtLevel(level + 1);
 
     if (isBreak) {
-        document.getElementById("blind").innerText = c.small + " / " + c.big;
+        // 🔥 ช่วงเบรค: แสดงคำว่า BREAK TIME โดยไม่แสดง Blind ปัจจุบัน แต่ยังคงแสดง Old / Next ด้านล่าง
+        blindBox.innerHTML = "BREAK TIME";
         document.getElementById("prevBlind").innerText = p ? "Old : " + p.small + " / " + p.big : "-";
         document.getElementById("nextBlind").innerText = "Next : " + n.small + " / " + n.big;
         return;
     }
+
+    // 🔥 เวลาปกติ: แสดง Blind ปัจจุบัน และแสดง Old / Next ด้านล่าง
+    blindBox.innerHTML = 'Blind : <span id="blind"></span>';
+    let c = getBlindAtLevel(level);
 
     document.getElementById("blind").innerText = c.small + " / " + c.big;
     document.getElementById("prevBlind").innerText = p ? "Old : " + p.small + " / " + p.big : "-";
