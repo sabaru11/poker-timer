@@ -388,27 +388,15 @@ function updateBlind() {
     let n = getBlindAtLevel(level + 1);
 
     if (isBreak) {
-        // ตอนพัก ให้แสดง Blind ของ Level เดิมที่เพิ่งจบไป
-        document.getElementById("blind").innerText =
-            c.small + " / " + c.big;
-
-        document.getElementById("prevBlind").innerText =
-            p ? "Old : " + p.small + " / " + p.big : "-";
-
-        document.getElementById("nextBlind").innerText =
-            "Next : " + n.small + " / " + n.big;
-
+        document.getElementById("blind").innerText = c.small + " / " + c.big;
+        document.getElementById("prevBlind").innerText = p ? "Old : " + p.small + " / " + p.big : "-";
+        document.getElementById("nextBlind").innerText = "Next : " + n.small + " / " + n.big;
         return;
     }
 
-    document.getElementById("blind").innerText =
-        c.small + " / " + c.big;
-
-    document.getElementById("prevBlind").innerText =
-        p ? "Old : " + p.small + " / " + p.big : "-";
-
-    document.getElementById("nextBlind").innerText =
-        "Next : " + n.small + " / " + n.big;
+    document.getElementById("blind").innerText = c.small + " / " + c.big;
+    document.getElementById("prevBlind").innerText = p ? "Old : " + p.small + " / " + p.big : "-";
+    document.getElementById("nextBlind").innerText = "Next : " + n.small + " / " + n.big;
 }
 
 function increaseLevel(){ level++; updateBlind(); saveState(); }
