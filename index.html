@@ -200,7 +200,8 @@ const blindLevels = [
     { small: 80, big: 120 },
     { small: 100, big: 150 },
     { small: 100, big: 200 },
-    { small: 200, big: 300 },
+    { small: 150, big: 250 },
+    { small: 150, big: 300 },
     { small: 200, big: 400 },
     { small: 300, big: 500 },
     { small: 400, big: 600 },
@@ -208,9 +209,14 @@ const blindLevels = [
     { small: 600, big: 1000 },
     { small: 800, big: 1200 },
     { small: 1000, big: 1500 },
+    { small: 1200, big: 1800 },
     { small: 1500, big: 2000 },
+    { small: 1800, big: 2500 },
     { small: 2000, big: 3000 },
-    { small: 3000, big: 5000 },
+    { small: 2500, big: 3500 },
+    { small: 3000, big: 4000 },
+    { small: 3500, big: 4500 },
+    { small: 4000, big: 5000 },
 ];
 
 let audioCtx;
@@ -258,7 +264,8 @@ function loadState() {
     isBreak = localStorage.getItem("isBreak") === "true";
 }
 
-function getLevelTime() { return level <= 14 ? 600 : 480; }
+//tc function getLevelTime() { return level <= 14 ? 600 : 480; }
+function getLevelTime() { return level <= 14 ? 600 : 600; }
 
 function startTimer() {
     isRunning = true;
@@ -381,8 +388,10 @@ function getBlindAtLevel(lv) {
     let last = blindLevels.at(-1);
     let step = lv - blindLevels.length;
     return {
-        small: last.small + (step * 500),
+        small: last.small + (step * 1000),
+        //tc small: last.small + (step * 500),
         big: last.big + (step * 1000)
+        //tc big: last.big + (step * 1000)
     };
 }
 
